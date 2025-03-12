@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMI健康管家</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', '微软雅黑', sans-serif;
+        }
+ 
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #83a4d4 0%, #b6fbff 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+ 
+        .calculator {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(131,164,212,0.2);
+            width: 100%;
+            max-width: 450px;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+        }
+ 
+        .calculator:hover {
+            transform: translateY(-5px) rotateX(2deg);
+        }
+ 
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 2.4em;
+            letter-spacing: 1.5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+ 
+        .input-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+ 
+        label {
+            display: block;
+            color: #34495e;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 1.1em;
+            padding-left: 5px;
+        }
+ 
+        input {
+            width: 100%;
+            padding: 14px 20px;
+            border: 2px solid rgba(131,164,212,0.2);
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(131,164,212,0.05);
+            transition: all 0.3s ease;
+        }
+ 
+        input:focus {
+            outline: none;
+            border-color: #83a4d4;
+            box-shadow: 0 0 12px rgba(131,164,212,0.2);
+        }
+ 
+        button {
+            background: linear-gradient(45deg, #83a4d4, #6a8bc7);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 12px;
+            width: 100%;
+            font-size: 17px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+ 
+        button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0) 25%,
+                rgba(255,255,255,0.3) 50%,
+                rgba(255,255,255,0) 75%
+            );
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+ 
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+ 
+        button:hover {
+            transform: scale(0.98);
+            box-shadow: 0 5px 15px rgba(131,164,212,0.4);
+        }
+ 
+        #result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 15px;
+            background: linear-gradient(145deg, #f8f9fa, #ffffff);
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+            border: 2px solid rgba(131,164,212,0.1);
+        }
+ 
+        #result.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+ 
+        .bmi-value {
+            font-size: 2.8em;
+            font-weight: 800;
+            color: #2c3e50;
+            margin: 15px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+ 
+        .status {
+            font-size: 1.3em;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+ 
+        .result-card {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(131,164,212,0.1);
+        }
+ 
+        .advice-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            margin: 10px 0;
+            background: rgba(131,164,212,0.08);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+ 
+        .advice-item:hover {
+            transform: translateX(10px);
+            background: linear-gradient(90deg, rgba(131,164,212,0.1), transparent);
+        }
+ 
+        .custom-alert {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+ 
+        .alert-content {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            width: 85%;
+            max-width: 320px;
+            padding: 25px;
+            border-radius: 15px;
+            position: relative;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+ 
+        .close-alert {
+            position: absolute;
+            right: 18px;
+            top: 12px;
+            font-size: 26px;
+            cursor: pointer;
+            color: #83a4d4;
+            transition: color 0.3s;
+        }
+ 
+        .close-alert:hover {
+            color: #5b86e5;
+        }
+ 
+        .underweight { background: #f0ad4e; color: white; }
+        .normal { background: #5cb85c; color: white; }
+        .overweight { background: #d9534f; color: white; }
+        .obese { background: #8b0000; color: white; }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>&#127752; BMI健康管家</h1>
+         
+        <div class="input-group">
+            <label for="height">&#128207; 身高（cm）</label>
+            <input type="number" id="height" placeholder="请输入身高" step="0.1">
+        </div>
+ 
+        <div class="input-group">
+            <label for="weight">&#9878;&#65039; 体重（kg）</label>
+            <input type="number" id="weight" placeholder="请输入体重" step="0.1">
+        </div>
+ 
+        <button onclick="calculateBMI()">&#128640; 立即测算</button>
+ 
+        <div id="result">
+            <p>&#128202; 您的BMI指数：</p>
+            <div class="bmi-value">-</div>
+            <div class="status">等待计算...</div>
+            <div id="adviceContainer"></div>
+        </div>
+    </div>
+ 
+    <div class="custom-alert" id="customAlert">
+        <div class="alert-content">
+            <span class="close-alert" onclick="closeAlert()">×</span>
+            <p id="alertMessage"></p>
+        </div>
+    </div>
+ 
+    <script>
+        const adviceData = {
+            underweight: {
+                diet: ["&#129371; 高蛋白奶制品（每日500ml）", "&#129385; 优质红肉（牛肉/羊肉）", "&#127792; 坚果能量棒（每日30g）", "&#127840; 复合碳水（红薯/山药）"],
+                exercise: ["&#127947;&#65039;&#8205;♂&#65039; 力量训练（每周4次）", "&#128692;&#8205;♀&#65039; 中等强度有氧（40分钟）", "&#129336;&#8205;♂&#65039; 功能性训练（平衡练习）"]
+            },
+            normal: {
+                diet: ["&#128031; 深海鱼类（每周3次）", "&#129382; 十字花科蔬菜（西兰花）", "&#127827; 低GI水果（蓝莓/苹果）", "&#127806; 全谷物（糙米/燕麦）"],
+                exercise: ["&#127946;&#8205;♀&#65039; 多样化运动（游泳/骑行）", "&#129496;&#8205;♀&#65039; 核心训练（平板支撑）", "&#128694;&#8205;♂&#65039; 每日万步（基础活动量）"]
+            },
+            overweight: {
+                diet: ["&#129367; 高纤维蔬菜（芹菜/菠菜）", "&#127831; 去皮禽肉（鸡胸/火鸡）", "&#127812; 菌菇类（香菇/杏鲍菇）", "&#129752; 植物蛋白（豆腐/鹰嘴豆）"],
+                exercise: ["&#127939;&#8205;♂&#65039; 每日有氧（45分钟）", "&#129336; HIIT训练（间歇运动）", "&#128692; 骑行训练（阻力调节）"]
+            },
+            obese: {
+                diet: ["&#129362; 低淀粉蔬菜（黄瓜/番茄）", "&#127844; 白灼海鲜（虾/贝类）", "&#127861; 绿茶/黑咖啡（无糖）", "&#127792; 适量坚果（10g/日）"],
+                exercise: ["&#127939;&#8205;♀&#65039; 低冲击有氧（水中运动）", "&#129681; 坐姿训练（关节保护）", "&#128694;&#8205;♀&#65039; 分段式运动（多次短时）"]
+            }
+        };
+ 
+        function showAlert(message) {
+            const alert = document.getElementById('customAlert');
+            document.getElementById('alertMessage').textContent = message;
+            alert.style.display = 'block';
+        }
+ 
+        function closeAlert() {
+            document.getElementById('customAlert').style.display = 'none';
+        }
+ 
+        function generateAdvice(bmiType) {
+            const { diet, exercise } = adviceData[bmiType];
+            return `
+                <div class="result-card">
+                    <h3 style="color:#2c3e50;margin-bottom:15px;">&#127869; 饮食建议</h3>
+                    ${diet.map(item => `<div class="advice-item">${item}</div>`).join('')}
+                     
+                    <h3 style="color:#2c3e50;margin:20px 0 15px;">&#127939; 运动计划</h3>
+                    ${exercise.map(item => `<div class="advice-item">${item}</div>`).join('')}
+                     
+                    <p style="margin-top:20px;color:#83a4d4;font-size:0.95em;">
+                        &#128161; 小贴士：${getRandomTip()}
+                    </p>
+                </div>
+            `;
+        }
+ 
+        function getRandomTip() {
+            const tips = [
+                "餐前喝杯温水有助于控制食量～",
+                "保证每天7小时优质睡眠很重要",
+                "运动后30分钟内补充蛋白质最佳",
+                "少食多餐更有利于代谢健康"
+            ];
+            return tips[Math.floor(Math.random() * tips.length)];
+        }
+ 
+        function calculateBMI() {
+            const heightInput = document.getElementById('height');
+            const weightInput = document.getElementById('weight');
+            const height = parseFloat(heightInput.value) / 100;
+            const weight = parseFloat(weightInput.value);
+            const resultDiv = document.getElementById('result');
+             
+            if (!height || !weight || height <= 0 || weight <= 0) {
+                showAlert("&#9888;&#65039; 请输入有效的数值");
+                return;
+            }
+ 
+            const bmi = (weight / (height * height)).toFixed(1);
+            const statusElement = resultDiv.querySelector('.status');
+            const valueElement = resultDiv.querySelector('.bmi-value');
+            const adviceContainer = document.getElementById('adviceContainer');
+ 
+            valueElement.textContent = bmi;
+            resultDiv.classList.add('show');
+ 
+            let bmiType = '';
+            if (bmi < 18.5) {
+                statusElement.className = 'status underweight';
+                statusElement.textContent = '体重过轻';
+                bmiType = 'underweight';
+            } else if (bmi < 24) {
+                statusElement.className = 'status normal';
+                statusElement.textContent = '健康体重';
+                bmiType = 'normal';
+            } else if (bmi < 28) {
+                statusElement.className = 'status overweight';
+                statusElement.textContent = '体重过重';
+                bmiType = 'overweight';
+            } else {
+                statusElement.className = 'status obese';
+                statusElement.textContent = '肥胖';
+                bmiType = 'obese';
+            }
+ 
+            adviceContainer.innerHTML = generateAdvice(bmiType);
+        }
+ 
+        // 输入验证
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', e => {
+                if (e.target.value < 0) e.target.value = '';
+            });
+        });
+ 
+        // 点击遮罩层关闭弹窗
+        document.getElementById('customAlert').addEventListener('click', function(e) {
+            if (e.target === this) closeAlert();
+        });
+    </script>
+</body>
+</html> 
